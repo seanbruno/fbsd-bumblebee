@@ -92,12 +92,23 @@ AC_SUBST([regular_CFLAGS])
 # Checks for libraries.
 #AC_CHECK_LIB([bsd], [pidfile_open])
 
+AC_ARG_WITH([with_libbsd],
+            [AS_HELP_STRING([--without-libbsd],
+                            [Do Not Check For libbsd])],
+            [],[with_libbsd=yes])
+
+if test "x$with_libbsd" = "yes" && test -f /usr/include/sys/param.h ; then
+  with_libbsd=no
+fi
+
 # Checks for header files.
 PKG_CHECK_MODULES([x11], [x11])
 PKG_CHECK_MODULES([glib], [glib-2.0])
 AS_IF([test "x$with_pidfile" != xno], [
+	if test "x$with_libbsd" = "xyes"; then
 		PKG_CHECK_MODULES([libbsd], [libbsd >= 0.2.0])
 		PKG_CHECK_EXISTS([libbsd = 0.2.0], [AC_DEFINE(HAVE_LIBBSD_020)])
+	}
 	])
 
 AC_CONFIG_FILES([Makefile])
