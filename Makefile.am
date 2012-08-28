@@ -51,6 +51,10 @@ bin_bumblebeed_SOURCES = src/pci.c src/bbconfig.c src/bblogger.c src/bbrun.c \
 	src/driver.c src/bumblebeed.c
 bin_bumblebeed_LDADD = ${x11_LIBS} ${libbsd_LIBS} ${glib_LIBS} -lrt
 
+if FREEBSD
+bin_bumblebeed_LDADD += -lutil
+endif
+
 dist_doc_DATA = $(relnotes) README.markdown
 bumblebeedconf_DATA = conf/bumblebee.conf conf/xorg.conf.nouveau conf/xorg.conf.nvidia
 

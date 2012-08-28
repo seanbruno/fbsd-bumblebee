@@ -99,6 +99,8 @@ AC_ARG_WITH([without_libbsd],
 
 if test "x$without_libbsd" = "xno" && test -f /usr/include/sys/param.h ; then
   without_libbsd=yes
+  AM_CONDITIONAL([FREEBSD], [test -f "/usr/include/sys/param.h"])
+  AC_DEFINE(HAVE_LIBBSD_020)
 fi
 
 # Checks for header files.
