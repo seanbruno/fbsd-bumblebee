@@ -21,10 +21,8 @@
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#ifdef __FreeBSD__
 #include <sys/ioctl.h>
 #include <sys/pciio.h>
-#endif
 #include <fcntl.h>
 #include <unistd.h>
 #include <libgen.h>
@@ -57,7 +55,6 @@ int pci_parse_bus_id(struct pci_bus_id *dest, int bus_id_numeric) {
  * if the class could not be determined
  */
 int pci_get_class(struct pci_bus_id *bus_id) {
-#ifdef __FreeBSD__
 	int pci_bus; 
 	struct pci_conf_io pc;
 	struct pci_conf conf[255];
@@ -86,26 +83,6 @@ int pci_get_class(struct pci_bus_id *bus_id) {
 	ioctl(pci_bus, PCIOCGETCONF, conf);
   close (pci_bus);
 	return (conf[0].pc_class);
-#else /* __Linux__ */
-  /* the Bus ID is always of fixed length */
-  char class_path[40];
-  FILE *fp;
-
-  snprintf(class_path, sizeof class_path,
-          "/sys/bus/pci/devices/0000:%02x:%02x.%o/class", bus_id->bus,
-          bus_id->slot, bus_id->func);
-  fp = fopen(class_path, "r");
-  if (fp) {
-    char class_buff[16];
-    int read_bytes;
-
-    read_bytes = fread(class_buff, 1, sizeof class_buff, fp);
-    class_buff[read_bytes] = 0;
-    fclose(fp);
-    return strtol(class_buff, NULL, 0) >> 8;
-  }
-  return 0; /* error */
-#endif
 }
 
 /**
