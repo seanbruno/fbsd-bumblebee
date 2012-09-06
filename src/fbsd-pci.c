@@ -54,35 +54,8 @@ int pci_parse_bus_id(struct pci_bus_id *dest, int bus_id_numeric) {
  * @return The class number of a device as shown by pciconf/lspci or 0
  * if the class could not be determined
  */
-int pci_get_class(struct pci_bus_id *bus_id) {
-	int pci_bus; 
-	struct pci_conf_io pc;
-	struct pci_conf conf[255];
-	struct pci_match_conf my_pattern;
-
-	pci_bus = open ("/dev/pci", O_RDWR);
-	if (pci_bus < 0)
-		return 0; /* err */
-
-  bzero(&pc, sizeof(struct pci_conf_io));
-  pc.match_buf_len = sizeof(conf);
-  pc.matches = conf;
-
-  bzero(&my_pattern, sizeof(struct pci_match_conf));
-
-  my_pattern.pc_sel.pc_domain = 0; /* domain is always 0? */
-  my_pattern.pc_sel.pc_bus = bus_id->bus;
-  my_pattern.pc_sel.pc_dev = bus_id->slot;
-  my_pattern.pc_sel.pc_func = bus_id->func;
-  my_pattern.flags = (PCI_GETCONF_MATCH_BUS | PCI_GETCONF_MATCH_DEV | PCI_GETCONF_MATCH_FUNC);
-
-  pc.patterns = &my_pattern;
-  pc.pat_buf_len = sizeof(my_pattern);
-  pc.num_patterns = 1;
-
-	ioctl(pci_bus, PCIOCGETCONF, conf);
-  close (pci_bus);
-	return (conf[0].pc_class);
+int pci_get_class(__unused struct pci_bus_id *bus_id) {
+	return 0;
 }
 
 /**
@@ -92,42 +65,61 @@ int pci_get_class(struct pci_bus_id *bus_id) {
  * no memory could be allocated
  */
 struct pci_bus_id *pci_find_gfx_by_vendor(unsigned int vendor_id) {
-  FILE *fp;
-  char buf[512];
-  unsigned int bus_id_numeric, vendor_device;
+	int pci_bus; 
+	struct pci_conf_io pc;
+	struct pci_conf conf[255], *p;
+	struct pci_match_conf my_pattern;
   struct pci_bus_id *result;
 
-  fp = fopen("/proc/bus/pci/devices", "r");
-  if (!fp) {
-    return NULL;
-  }
+	pci_bus = open ("/dev/pci", O_RDWR);
+	if (pci_bus < 0)
+		return 0; /* err */
 
   result = malloc(sizeof (struct pci_bus_id));
   if (!result) {
     return NULL;
   }
 
-  while (fgets(buf, sizeof(buf) - 1, fp)) {
-    if (sscanf(buf, "%x %x", &bus_id_numeric, &vendor_device) != 2) {
-      continue;
+  bzero(&pc, sizeof(struct pci_conf_io));
+  pc.match_buf_len = sizeof(conf);
+  pc.matches = conf;
+
+  bzero(&my_pattern, sizeof(struct pci_match_conf));
+
+  my_pattern.pc_class = PCI_CLASS_DISPLAY_VGA;
+  /*my_pattern.pc_class = PCI_CLASS_DISPLAY_3D;*/
+  my_pattern.pc_vendor = vendor_id;
+  my_pattern.flags = (PCI_GETCONF_MATCH_CLASS | PCI_GETCONF_MATCH_VENDOR);
+
+  pc.patterns = &my_pattern;
+  pc.pat_buf_len = sizeof(my_pattern);
+  pc.num_patterns = 1;
+
+  do {
+		int none_count = 0;
+		if (ioctl(pci_bus, PCIOCGETCONF, conf) == -1)
+      return NULL;
+
+    for (p = conf; p < &conf[pc.num_matches]; p++) {
+      printf("%s%d@pci%d:%d:%d:%d:\tclass=0x%06x card=0x%08x "
+          "chip=0x%08x rev=0x%02x hdr=0x%02x\n",
+          (p->pd_name && *p->pd_name) ? p->pd_name :
+          "none",
+          (p->pd_name && *p->pd_name) ? (int)p->pd_unit :
+          none_count++, p->pc_sel.pc_domain,
+          p->pc_sel.pc_bus, p->pc_sel.pc_dev,
+          p->pc_sel.pc_func, (p->pc_class << 16) |
+          (p->pc_subclass << 8) | p->pc_progif,
+          (p->pc_subdevice << 16) | p->pc_subvendor,
+          (p->pc_device << 16) | p->pc_vendor,
+          p->pc_revid, p->pc_hdr);
+      printf("class (%d)\n", (p->pc_class));
+      printf("subclass (%d)\n", (p->pc_subclass));
+      printf("vendor (0x%x)\n", (p->pc_vendor));
     }
-    /* VVVVDDDD becomes VVVV */
-    if (vendor_device >> 0x10 == vendor_id) {
-      if (pci_parse_bus_id(result, bus_id_numeric)) {
-        int pci_class = pci_get_class(result);
-        if (pci_class == PCI_CLASS_DISPLAY_VGA ||
-                pci_class == PCI_CLASS_DISPLAY_3D) {
-          /* yay, found device. Now clean up and return */
-          fclose(fp);
-          return result;
-        }
-      }
-    }
-  }
-  /* no device found, clean up and return */
-  fclose(fp);
-  free(result);
-  return NULL;
+  } while (pc.status == PCI_GETCONF_MORE_DEVS);
+  close (pci_bus);
+	return (result);
 }
 
 /**
