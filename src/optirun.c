@@ -261,7 +261,7 @@ int main(int argc, char *argv[]) {
   /* Initializing configuration */
   init_config(argc, argv);
   bbconfig_parse_opts(argc, argv, PARSE_STAGE_PRECONF);
-  GKeyFile *bbcfg = bbconfig_parse_conf();
+  __unused GKeyFile *bbcfg = bbconfig_parse_conf();
 
 
   /* Connect to listening daemon */

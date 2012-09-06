@@ -129,3 +129,4 @@ int module_is_available(char *module_name) {
   };
   return bb_run_fork(mod_argv, 1) == EXIT_SUCCESS;
 }
+

@@ -44,3 +44,4 @@ struct pci_config_state {
 
 int pci_config_save(struct pci_bus_id *bus_id, struct pci_config_state *pcs);
 int pci_config_restore(struct pci_bus_id *bus_id, struct pci_config_state *pcs);
+

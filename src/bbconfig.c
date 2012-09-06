@@ -463,7 +463,7 @@ void bbconfig_parse_conf_driver(GKeyFile *bbcfg, char *driver) {
  * @param argv Argument values
  * @param runmode The running mode of the program
  */
-void init_early_config(int argc, char **argv, int runmode) {
+void init_early_config(__unused int argc, char **argv, int runmode) {
   /* clear existing configuration and reset pointers */
   memset(&bb_status, 0, sizeof bb_status);
   set_string_value(&bb_status.errors, ""); //we start without errors, yay!
@@ -482,7 +482,7 @@ void init_early_config(int argc, char **argv, int runmode) {
  * @param argc Arguments count
  * @param argv Argument values
  */
-void init_config(int argc, char **argv) {
+void init_config(__unused int argc, __unused char **argv) {
   /* clear pointers and settings */
   memset(&bb_config, 0, sizeof bb_config);
   /* set defaults if not set already */

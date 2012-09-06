@@ -85,3 +85,4 @@ enum switch_state switch_off(void) {
   }
   return SWITCH_UNAVAIL;
 }
+

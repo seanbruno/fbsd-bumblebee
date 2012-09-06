@@ -85,7 +85,7 @@ static void bbswitch_write(char *msg) {
  * decision whether bbswitch is usable or not
  * @return 1 if available for use for PM, 0 otherwise
  */
-int bbswitch_is_available(struct switch_info info) {
+int bbswitch_is_available(__unused struct switch_info info) {
   /* easy one: if the path is available, bbswitch is usable */
   if (access(BBSWITCH_PATH, F_OK | R_OK | W_OK) == 0) {
     /* file exists and read/write is allowed */
