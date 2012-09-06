@@ -45,7 +45,7 @@ bin_PROGRAMS = bin/optirun
 bin_optirun_SOURCES = src/module.c src/bbconfig.c src/bblogger.c src/bbrun.c \
 	src/bbsocket.c src/driver.c src/optirun.c src/bbsocketclient.c
 bin_optirun_LDADD = ${glib_LIBS} -lrt
-bin_bumblebeed_SOURCES = src/pci.c src/bbconfig.c src/bblogger.c src/bbrun.c \
+bin_bumblebeed_SOURCES = src/bbconfig.c src/bblogger.c src/bbrun.c \
 	src/bbsocket.c src/module.c src/bbsecondary.c src/switch/switching.c \
 	src/switch/sw_bbswitch.c src/switch/sw_switcheroo.c \
 	src/driver.c src/bumblebeed.c
@@ -53,6 +53,9 @@ bin_bumblebeed_LDADD = ${x11_LIBS} ${libbsd_LIBS} ${glib_LIBS} -lrt
 
 if FREEBSD
 bin_bumblebeed_LDADD += -lutil
+bin_bumblebeed_SOURCES += src/fbsd-pci.c
+else
+bin_bumblebeed_SOURCES += src/pci.c
 endif
 
 dist_doc_DATA = $(relnotes) README.markdown
